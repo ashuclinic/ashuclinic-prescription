@@ -122,8 +122,14 @@ def sb_delete(table, match_key, match_val):
 
 
 # Anthropic API key for AI prescription reading
-# NOTE: Remove this key before clinic deployment - replace with clinic key
-ANTHROPIC_API_KEY = "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"
+# Loaded securely from Streamlit Secrets - never hardcoded
+def get_anthropic_key():
+    try:
+        return st.secrets["ANTHROPIC_API_KEY"]
+    except Exception:
+        return None
+
+ANTHROPIC_API_KEY = get_anthropic_key()
 
 PDF_OUTPUT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -1205,7 +1211,10 @@ def read_prescription_with_ai(file_bytes, file_type):
     # Reads a handwritten prescription image or PDF using Claude AI
     # Returns a dict with extracted patient data or None on failure
     try:
-        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        api_key = get_anthropic_key()
+        if not api_key:
+            return None
+        client = anthropic.Anthropic(api_key=api_key)
 
         prompt = """You are reading a handwritten medical prescription from
 Ashu Aesthetic and Wellness Clinic, Bhubaneswar.
